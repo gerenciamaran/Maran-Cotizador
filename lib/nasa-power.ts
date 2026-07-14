@@ -13,8 +13,13 @@ interface NasaPowerResponse {
   };
 }
 
-// La respuesta trae 12 valores mensuales (claves "1".."12") más un "13" que
-// es el promedio anual ya calculado por NASA — lo usamos directo si viene.
+const MONTH_KEYS = [
+  "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+  "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
+];
+
+// La respuesta trae 12 valores mensuales (claves "JAN".."DEC") más un "ANN"
+// que es el promedio anual ya calculado por NASA — lo usamos directo si viene.
 export async function fetchAnnualAverageIrradiation(
   latitude: number,
   longitude: number
@@ -30,11 +35,11 @@ export async function fetchAnnualAverageIrradiation(
     throw new Error("NASA POWER no devolvió datos de irradiación para esta ubicación.");
   }
 
-  if (typeof monthly["13"] === "number") {
-    return monthly["13"];
+  if (typeof monthly["ANN"] === "number") {
+    return monthly["ANN"];
   }
 
-  const values = Array.from({ length: 12 }, (_, i) => monthly[String(i + 1)]).filter(
+  const values = MONTH_KEYS.map((key) => monthly[key]).filter(
     (v): v is number => typeof v === "number"
   );
   if (values.length === 0) {
