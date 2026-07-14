@@ -58,16 +58,24 @@ export async function updateMarginAction(
 ): Promise<ActionState> {
   await requireAdminProfile();
   const marginPct = Number(formData.get("default_margin_pct"));
+  const targetCoveragePct = Number(formData.get("default_target_coverage_pct"));
   if (isNaN(marginPct) || marginPct < 0) return { error: "Ingresa un margen válido." };
+  if (isNaN(targetCoveragePct) || targetCoveragePct <= 0) {
+    return { error: "Ingresa una cobertura objetivo válida." };
+  }
 
   const supabase = await createClient();
   const { error } = await supabase
     .from("app_settings")
-    .update({ default_margin_pct: marginPct, updated_at: new Date().toISOString() })
+    .update({
+      default_margin_pct: marginPct,
+      default_target_coverage_pct: targetCoveragePct,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", 1);
 
   if (error) return { error: error.message };
 
   revalidatePath("/catalog");
-  return { error: null, message: "Margen actualizado." };
+  return { error: null, message: "Configuración actualizada." };
 }

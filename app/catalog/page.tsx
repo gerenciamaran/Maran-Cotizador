@@ -35,8 +35,11 @@ export default async function CatalogPage() {
       </Link>
 
       <Card>
-        <CardTitle>Margen por defecto</CardTitle>
-        <MarginForm currentMargin={settings.default_margin_pct} />
+        <CardTitle>Márgenes y dimensionamiento por defecto</CardTitle>
+        <MarginForm
+          currentMargin={settings.default_margin_pct}
+          currentTargetCoveragePct={settings.default_target_coverage_pct}
+        />
       </Card>
 
       <Card>

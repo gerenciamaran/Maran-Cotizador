@@ -103,6 +103,7 @@ export async function calculateSizingAction(
   const quoteId = String(formData.get("quote_id") || "");
   const orientation = String(formData.get("orientation") || "buena") as OrientationOption;
   const performanceRatio = Number(formData.get("performance_ratio"));
+  const targetCoveragePct = Number(formData.get("target_coverage_pct")) || 100;
 
   const supabase = await createClient();
   const { data: quote, error: quoteError } = await supabase
@@ -139,6 +140,7 @@ export async function calculateSizingAction(
     avgDailyIrradiation,
     performanceRatio,
     orientationFactor,
+    targetCoveragePct,
   });
 
   const { error } = await supabase
@@ -146,6 +148,7 @@ export async function calculateSizingAction(
     .update({
       orientation_factor: orientationFactor,
       performance_ratio: performanceRatio,
+      target_coverage_pct: targetCoveragePct,
       avg_daily_irradiation: avgDailyIrradiation,
       required_kwp: sizing.requiredKwp,
       estimated_monthly_production_kwh: sizing.estimatedMonthlyProductionKwh,

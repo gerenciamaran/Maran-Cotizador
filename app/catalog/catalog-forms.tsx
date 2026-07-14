@@ -81,23 +81,47 @@ export function DeleteCatalogItemButton({ id }: { id: string }) {
   );
 }
 
-export function MarginForm({ currentMargin }: { currentMargin: number }) {
+export function MarginForm({
+  currentMargin,
+  currentTargetCoveragePct,
+}: {
+  currentMargin: number;
+  currentTargetCoveragePct: number;
+}) {
   const [state, formAction, pending] = useActionState(updateMarginAction, initial);
   return (
-    <form action={formAction} className="flex gap-2.5 items-start">
-      <input
-        name="default_margin_pct"
-        type="number"
-        step="0.1"
-        min="0"
-        defaultValue={currentMargin}
-        className={`${inputClass} max-w-[140px]`}
-      />
-      <Button type="submit" variant="outline" disabled={pending}>
-        {pending ? "Guardando…" : "Guardar margen (%)"}
+    <form action={formAction} className="flex gap-2.5 items-start flex-wrap">
+      <div>
+        <label className="block font-mono text-[10px] uppercase text-gray-500 mb-1">
+          Margen (%)
+        </label>
+        <input
+          name="default_margin_pct"
+          type="number"
+          step="0.1"
+          min="0"
+          defaultValue={currentMargin}
+          className={`${inputClass} max-w-[140px]`}
+        />
+      </div>
+      <div>
+        <label className="block font-mono text-[10px] uppercase text-gray-500 mb-1">
+          Cobertura objetivo (%)
+        </label>
+        <input
+          name="default_target_coverage_pct"
+          type="number"
+          step="1"
+          min="10"
+          defaultValue={currentTargetCoveragePct}
+          className={`${inputClass} max-w-[140px]`}
+        />
+      </div>
+      <Button type="submit" variant="outline" disabled={pending} className="mt-5">
+        {pending ? "Guardando…" : "Guardar"}
       </Button>
-      {state.message && <p className="text-success text-sm">{state.message}</p>}
-      {state.error && <p className="text-danger text-sm">{state.error}</p>}
+      {state.message && <p className="text-success text-sm w-full">{state.message}</p>}
+      {state.error && <p className="text-danger text-sm w-full">{state.error}</p>}
     </form>
   );
 }

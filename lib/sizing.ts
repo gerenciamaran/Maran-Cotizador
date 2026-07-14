@@ -1,5 +1,5 @@
 // Fórmula de dimensionamiento solar. Función pura: sin dependencias de
-// Supabase/Next, fácil de probar aislada (ver lib/sizing.test-manual.mjs).
+// Supabase/Next, fácil de probar aislada.
 
 export type OrientationOption = "optima" | "buena" | "sombra_parcial" | "mala";
 
@@ -25,6 +25,7 @@ export interface SizingInput {
   avgDailyIrradiation: number; // kWh/m²/día, de NASA POWER
   performanceRatio: number; // 0-1
   orientationFactor: number; // 0-1
+  targetCoveragePct: number; // 100 = dimensionar justo para el consumo actual; más para sobredimensionar
 }
 
 export interface SizingResult {
@@ -40,12 +41,14 @@ export function computeSizing(input: SizingInput): SizingResult {
     avgDailyIrradiation,
     performanceRatio,
     orientationFactor,
+    targetCoveragePct,
   } = input;
 
+  const targetConsumptionKwh = monthlyConsumptionKwh * (targetCoveragePct / 100);
   const dailyYieldPerKwp = avgDailyIrradiation * performanceRatio * orientationFactor;
   const requiredKwp =
     dailyYieldPerKwp > 0
-      ? monthlyConsumptionKwh / (dailyYieldPerKwp * DAYS_PER_MONTH)
+      ? targetConsumptionKwh / (dailyYieldPerKwp * DAYS_PER_MONTH)
       : 0;
   const estimatedMonthlyProductionKwh = requiredKwp * dailyYieldPerKwp * DAYS_PER_MONTH;
   const estimatedMonthlySavingsCop =

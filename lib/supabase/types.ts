@@ -69,6 +69,7 @@ export interface Database {
           id: number;
           default_margin_pct: number;
           default_performance_ratio: number;
+          default_target_coverage_pct: number;
           company_name: string;
           updated_at: string;
         };
@@ -76,6 +77,7 @@ export interface Database {
           id?: number;
           default_margin_pct?: number;
           default_performance_ratio?: number;
+          default_target_coverage_pct?: number;
           company_name?: string;
           updated_at?: string;
         };
@@ -105,6 +107,7 @@ export interface Database {
 
           orientation_factor: number | null;
           performance_ratio: number | null;
+          target_coverage_pct: number;
           avg_daily_irradiation: number | null;
           required_kwp: number | null;
           estimated_monthly_production_kwh: number | null;
@@ -142,6 +145,7 @@ export interface Database {
 
           orientation_factor?: number | null;
           performance_ratio?: number | null;
+          target_coverage_pct?: number;
           avg_daily_irradiation?: number | null;
           required_kwp?: number | null;
           estimated_monthly_production_kwh?: number | null;

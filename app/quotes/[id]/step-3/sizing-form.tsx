@@ -18,9 +18,11 @@ function orientationFromFactor(factor: number | null): OrientationOption {
 export function SizingForm({
   quote,
   defaultPerformanceRatio,
+  defaultTargetCoveragePct,
 }: {
   quote: Quote;
   defaultPerformanceRatio: number;
+  defaultTargetCoveragePct: number;
 }) {
   const [state, formAction, pending] = useActionState(calculateSizingAction, initialState);
   const alreadyCalculated = quote.required_kwp !== null;
@@ -54,6 +56,21 @@ export function SizingForm({
         defaultValue={quote.performance_ratio ?? defaultPerformanceRatio}
         className={inputClass}
       />
+
+      <FieldLabel>Cobertura objetivo del consumo (%)</FieldLabel>
+      <input
+        name="target_coverage_pct"
+        type="number"
+        step="1"
+        min="10"
+        max="300"
+        defaultValue={quote.target_coverage_pct ?? defaultTargetCoveragePct}
+        className={inputClass}
+      />
+      <p className="text-xs text-gray-500 mt-1">
+        100% dimensiona el sistema justo para cubrir el consumo actual. Usa un valor mayor
+        para dejar margen de crecimiento futuro del cliente.
+      </p>
 
       {state.error && <p className="text-danger text-sm mt-2">{state.error}</p>}
 

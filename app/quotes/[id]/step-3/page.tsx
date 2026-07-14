@@ -32,6 +32,7 @@ export default async function Step3Page({
           <SizingForm
             quote={quote}
             defaultPerformanceRatio={settings.default_performance_ratio}
+            defaultTargetCoveragePct={settings.default_target_coverage_pct}
           />
         )}
       </Card>

@@ -233,6 +233,13 @@ export function ProposalDocument({
               <Text style={styles.statValue}>{quote.required_kwp?.toFixed(2)} kWp</Text>
             </View>
           </View>
+          <View style={styles.statsRow}>
+            <View style={styles.statBox}>
+              <Text style={styles.statLabel}>COBERTURA OBJETIVO DEL CONSUMO</Text>
+              <Text style={styles.statValue}>{quote.target_coverage_pct}%</Text>
+            </View>
+            <View style={styles.statBox} />
+          </View>
 
           <Text style={styles.sectionTitle}>Producción y ahorro estimado</Text>
           <View style={styles.statsRow}>

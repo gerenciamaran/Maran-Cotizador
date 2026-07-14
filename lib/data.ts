@@ -58,6 +58,7 @@ export async function getAppSettings(): Promise<AppSettings> {
       id: 1,
       default_margin_pct: 25,
       default_performance_ratio: 0.8,
+      default_target_coverage_pct: 100,
       company_name: "MARÁN ENERGY",
       updated_at: new Date().toISOString(),
     }
