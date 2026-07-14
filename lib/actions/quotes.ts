@@ -48,12 +48,21 @@ export async function updateConsumptionAction(
   }
 
   const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from("quotes")
+    .select("bill_image_path")
+    .eq("id", quoteId)
+    .single();
+
   const { error } = await supabase
     .from("quotes")
     .update({
       monthly_consumption_kwh: monthlyConsumption,
       tariff_cop_per_kwh: tariff,
-      ocr_confidence: "manual",
+      // Si ya se subió una factura y se corrió OCR sobre ella, este envío es
+      // la revisión humana del dato extraído (se haya editado o no); si nunca
+      // hubo OCR, es una entrada 100% manual.
+      ocr_confidence: existing?.bill_image_path ? "user_corrected" : "manual",
       updated_at: new Date().toISOString(),
     })
     .eq("id", quoteId);

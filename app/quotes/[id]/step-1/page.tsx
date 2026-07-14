@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getQuoteById, requireProfile } from "@/lib/data";
 import { WizardProgress } from "@/components/wizard-progress";
 import { Card, CardTitle } from "@/components/ui";
-import { ConsumptionForm } from "@/app/quotes/[id]/step-1/consumption-form";
+import { Step1Client } from "@/app/quotes/[id]/step-1/step1-client";
 
 export default async function Step1Page({
   params,
@@ -24,11 +24,11 @@ export default async function Step1Page({
       <Card>
         <CardTitle>Consumo de energía</CardTitle>
         <p className="text-sm text-gray-500 mb-4">
-          Ingresa el consumo mensual y la tarifa del cliente (los encuentras en su
-          factura de energía). Más adelante esto se podrá extraer automáticamente de
-          una foto de la factura.
+          Sube una foto de la factura para extraer el consumo y la tarifa automáticamente,
+          o escríbelos a mano. Siempre revisa que los valores sean correctos antes de
+          continuar.
         </p>
-        <ConsumptionForm
+        <Step1Client
           quoteId={quote.id}
           initialConsumption={quote.monthly_consumption_kwh}
           initialTariff={quote.tariff_cop_per_kwh}
