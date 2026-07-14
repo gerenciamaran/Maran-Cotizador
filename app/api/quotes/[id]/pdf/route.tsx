@@ -51,7 +51,10 @@ export async function GET(
   return new NextResponse(new Uint8Array(pdfBuffer), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="propuesta-${quoteNumber}.pdf"`,
+      // "inline" en vez de "attachment": se abre en el visor de PDF del
+      // navegador (con su propio botón de descarga/imprimir) en vez de
+      // forzar la descarga inmediata.
+      "Content-Disposition": `inline; filename="propuesta-${quoteNumber}.pdf"`,
     },
   });
 }

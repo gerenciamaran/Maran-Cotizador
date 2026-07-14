@@ -69,12 +69,14 @@ export default async function QuotesPage() {
         ) : (
           <div className="divide-y divide-gray-100">
             {quotes.map((q) => (
-              <Link
+              <div
                 key={q.id}
-                href={`/quotes/${q.id}/${stepForQuote(q.status)}`}
-                className="flex justify-between items-center py-3 hover:bg-gray-50 -mx-2 px-2 rounded-lg"
+                className="flex justify-between items-center gap-3 py-3 hover:bg-gray-50 -mx-2 px-2 rounded-lg"
               >
-                <div>
+                <Link
+                  href={`/quotes/${q.id}/${stepForQuote(q.status)}`}
+                  className="flex-1 min-w-0"
+                >
                   <div className="font-semibold text-sm text-gray-900">
                     {q.client_company_name ?? "Sin nombre de cliente todavía"}
                   </div>
@@ -88,13 +90,25 @@ export default async function QuotesPage() {
                         }).format(q.total_budget_cop)}`
                       : ""}
                   </div>
+                </Link>
+                <div className="flex items-center gap-2.5 shrink-0">
+                  {q.total_budget_cop && (
+                    <a
+                      href={`/api/quotes/${q.id}/pdf`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-medium text-blue-600 hover:underline"
+                    >
+                      Ver PDF
+                    </a>
+                  )}
+                  <span
+                    className={`text-xs font-medium px-2.5 py-1 rounded-full ${STATUS_COLORS[q.status]}`}
+                  >
+                    {STATUS_LABELS[q.status]}
+                  </span>
                 </div>
-                <span
-                  className={`text-xs font-medium px-2.5 py-1 rounded-full ${STATUS_COLORS[q.status]}`}
-                >
-                  {STATUS_LABELS[q.status]}
-                </span>
-              </Link>
+              </div>
             ))}
           </div>
         )}
