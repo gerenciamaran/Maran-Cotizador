@@ -99,22 +99,17 @@ export async function registerAction(
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: { full_name: fullName } },
+  });
   if (error) return { error: error.message };
   if (!data.user) return { error: "No se pudo crear la cuenta." };
 
-  const { error: profileError } = await supabase.from("profiles").insert({
-    id: data.user.id,
-    full_name: fullName,
-  });
-
-  if (profileError) {
-    return {
-      error:
-        "Tu cuenta se creó pero no se pudo guardar tu perfil: " +
-        profileError.message,
-    };
-  }
+  // El perfil se crea vía trigger (public.handle_new_user) a partir de
+  // raw_user_meta_data, no aquí — evita depender de tener sesión ya
+  // establecida cuando la confirmación de correo está activada.
 
   if (!data.session) {
     return {
