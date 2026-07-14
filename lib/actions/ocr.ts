@@ -10,7 +10,9 @@ export type OcrState = {
   tariffCopPerKwh?: number | null;
 };
 
-const OCR_SPACE_URL = "https://apipro1.ocr.space/parse/image";
+// El endpoint "apipro1" es solo para cuentas de pago; con la API key gratuita
+// hay que usar este (da error 403 "Wrong server endpoint" si no).
+const OCR_SPACE_URL = "https://api.ocr.space/parse/image";
 
 export async function runOcrAction(
   _prevState: OcrState,
