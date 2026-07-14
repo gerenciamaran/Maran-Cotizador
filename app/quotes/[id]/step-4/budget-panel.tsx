@@ -90,13 +90,20 @@ export function BudgetPanel({ quote }: { quote: Quote }) {
 
       {error && <p className="text-danger text-sm mb-3">{error}</p>}
 
-      <Button onClick={handleGenerate} disabled={pending}>
-        {pending
-          ? "Calculando…"
-          : quote.total_budget_cop
-          ? "Recalcular presupuesto"
-          : "Generar presupuesto"}
-      </Button>
+      <div className="flex gap-2.5">
+        <Button onClick={handleGenerate} disabled={pending}>
+          {pending
+            ? "Calculando…"
+            : quote.total_budget_cop
+            ? "Recalcular presupuesto"
+            : "Generar presupuesto"}
+        </Button>
+        {quote.total_budget_cop && (
+          <Button variant="outline" onClick={() => window.open(`/api/quotes/${quote.id}/pdf`, "_blank")}>
+            Descargar PDF
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
