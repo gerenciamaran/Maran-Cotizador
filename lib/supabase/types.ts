@@ -5,7 +5,15 @@
 
 export type ProfileRole = "admin" | "sales";
 export type PriceCategory = "panel" | "inverter" | "structure" | "labor" | "other";
-export type PriceUnitType = "per_wp" | "per_kwp" | "flat" | "percent";
+export type PriceUnitType =
+  | "per_wp"
+  | "per_kwp"
+  | "flat"
+  | "percent"
+  | "tiered_flat"
+  | "tiered_rate";
+export type SkuCategory = "panel" | "inverter";
+export type SkuUnitType = "per_wp" | "per_kwp";
 export type QuoteStatus = "draft" | "calculated" | "sent" | "won" | "lost";
 export type OcrConfidence = "auto" | "user_corrected" | "manual";
 
@@ -64,6 +72,60 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["price_catalog"]["Insert"]>;
         Relationships: [];
       };
+      price_tiers: {
+        Row: {
+          id: string;
+          price_catalog_id: string;
+          band_order: number;
+          min_kwp: number;
+          max_kwp: number | null;
+          multiplier_pct: number;
+        };
+        Insert: {
+          id?: string;
+          price_catalog_id: string;
+          band_order: number;
+          min_kwp: number;
+          max_kwp?: number | null;
+          multiplier_pct?: number;
+        };
+        Update: Partial<Database["public"]["Tables"]["price_tiers"]["Insert"]>;
+        Relationships: [];
+      };
+      product_skus: {
+        Row: {
+          id: string;
+          category: SkuCategory;
+          brand: string;
+          model: string;
+          capacity_label: string | null;
+          unit_type: SkuUnitType;
+          unit_cost_cop: number;
+          is_default: boolean;
+          is_active: boolean;
+          notes: string | null;
+          updated_by: string | null;
+          updated_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          category: SkuCategory;
+          brand: string;
+          model: string;
+          capacity_label?: string | null;
+          unit_type: SkuUnitType;
+          unit_cost_cop: number;
+          is_default?: boolean;
+          is_active?: boolean;
+          notes?: string | null;
+          updated_by?: string | null;
+          updated_at?: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["product_skus"]["Insert"]>;
+        Relationships: [];
+      };
       app_settings: {
         Row: {
           id: number;
@@ -118,6 +180,8 @@ export interface Database {
           margin_pct: number | null;
           total_budget_cop: number | null;
           pdf_storage_path: string | null;
+          panel_sku_id: string | null;
+          inverter_sku_id: string | null;
 
           external_project_id: string | null;
           created_at: string;
@@ -156,6 +220,8 @@ export interface Database {
           margin_pct?: number | null;
           total_budget_cop?: number | null;
           pdf_storage_path?: string | null;
+          panel_sku_id?: string | null;
+          inverter_sku_id?: string | null;
 
           external_project_id?: string | null;
           created_at?: string;
@@ -174,5 +240,7 @@ export interface Database {
 
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type PriceCatalogItem = Database["public"]["Tables"]["price_catalog"]["Row"];
+export type PriceTier = Database["public"]["Tables"]["price_tiers"]["Row"];
+export type ProductSku = Database["public"]["Tables"]["product_skus"]["Row"];
 export type AppSettings = Database["public"]["Tables"]["app_settings"]["Row"];
 export type Quote = Database["public"]["Tables"]["quotes"]["Row"];

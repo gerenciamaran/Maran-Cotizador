@@ -1,7 +1,15 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { AppSettings, PriceCatalogItem, Profile, Quote } from "@/lib/supabase/types";
+import type {
+  AppSettings,
+  PriceCatalogItem,
+  PriceTier,
+  ProductSku,
+  Profile,
+  Quote,
+  SkuCategory,
+} from "@/lib/supabase/types";
 
 export async function requireProfile(): Promise<Profile> {
   const supabase = await createClient();
@@ -49,6 +57,38 @@ export async function getActiveCatalog(): Promise<PriceCatalogItem[]> {
     .eq("is_active", true)
     .order("category");
   return data ?? [];
+}
+
+export async function getActiveSkus(): Promise<ProductSku[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("product_skus")
+    .select("*")
+    .eq("is_active", true)
+    .order("category")
+    .order("brand");
+  return data ?? [];
+}
+
+export async function getDefaultSku(category: SkuCategory): Promise<ProductSku | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("product_skus")
+    .select("*")
+    .eq("category", category)
+    .eq("is_default", true)
+    .maybeSingle();
+  return data ?? null;
+}
+
+export async function getPriceTiersByItemId(): Promise<Record<string, PriceTier[]>> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("price_tiers").select("*").order("band_order");
+  const byItemId: Record<string, PriceTier[]> = {};
+  for (const tier of data ?? []) {
+    (byItemId[tier.price_catalog_id] ??= []).push(tier);
+  }
+  return byItemId;
 }
 
 export interface ProfileWithEmail extends Profile {

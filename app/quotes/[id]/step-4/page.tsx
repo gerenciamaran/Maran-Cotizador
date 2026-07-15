@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getQuoteById, requireProfile } from "@/lib/data";
+import { getActiveSkus, getQuoteById, requireProfile } from "@/lib/data";
 import { WizardProgress } from "@/components/wizard-progress";
 import { Card, CardTitle, Empty } from "@/components/ui";
 import { BudgetPanel } from "@/app/quotes/[id]/step-4/budget-panel";
@@ -12,7 +12,7 @@ export default async function Step4Page({
 }) {
   await requireProfile();
   const { id } = await params;
-  const quote = await getQuoteById(id);
+  const [quote, skus] = await Promise.all([getQuoteById(id), getActiveSkus()]);
   if (!quote) notFound();
 
   return (
@@ -26,7 +26,11 @@ export default async function Step4Page({
         {!quote.required_kwp ? (
           <Empty>Falta calcular el dimensionamiento del sistema (paso 3).</Empty>
         ) : (
-          <BudgetPanel quote={quote} />
+          <BudgetPanel
+            quote={quote}
+            panelOptions={skus.filter((s) => s.category === "panel")}
+            inverterOptions={skus.filter((s) => s.category === "inverter")}
+          />
         )}
       </Card>
     </div>

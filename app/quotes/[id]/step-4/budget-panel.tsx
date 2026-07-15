@@ -3,8 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { finalizeQuoteAction, generateBudgetAction } from "@/lib/actions/quotes";
-import { Button } from "@/components/ui";
-import type { Quote } from "@/lib/supabase/types";
+import { Button, inputClass } from "@/components/ui";
+import type { ProductSku, Quote } from "@/lib/supabase/types";
 
 const CATEGORY_LABELS: Record<string, string> = {
   panel: "Paneles",
@@ -22,16 +22,33 @@ function formatCop(n: number) {
   }).format(n);
 }
 
-export function BudgetPanel({ quote }: { quote: Quote }) {
+export function BudgetPanel({
+  quote,
+  panelOptions,
+  inverterOptions,
+}: {
+  quote: Quote;
+  panelOptions: ProductSku[];
+  inverterOptions: ProductSku[];
+}) {
   const [pending, startTransition] = useTransition();
   const [finalizing, startFinalizing] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [panelSkuId, setPanelSkuId] = useState(
+    quote.panel_sku_id ?? panelOptions.find((s) => s.is_default)?.id ?? panelOptions[0]?.id ?? ""
+  );
+  const [inverterSkuId, setInverterSkuId] = useState(
+    quote.inverter_sku_id ?? inverterOptions.find((s) => s.is_default)?.id ?? inverterOptions[0]?.id ?? ""
+  );
   const router = useRouter();
 
   function handleGenerate() {
     setError(null);
     startTransition(async () => {
-      const result = await generateBudgetAction(quote.id);
+      const formData = new FormData();
+      formData.set("panel_sku_id", panelSkuId);
+      formData.set("inverter_sku_id", inverterSkuId);
+      const result = await generateBudgetAction(quote.id, formData);
       if (result.error) {
         setError(result.error);
         return;
@@ -94,6 +111,45 @@ export function BudgetPanel({ quote }: { quote: Quote }) {
           </div>
         </div>
       ) : null}
+
+      {(panelOptions.length > 0 || inverterOptions.length > 0) && (
+        <div className="grid grid-cols-2 gap-2.5 mb-3.5">
+          <div>
+            <label className="block font-mono text-[10px] uppercase text-gray-500 mb-1">
+              Panel
+            </label>
+            <select
+              value={panelSkuId}
+              onChange={(e) => setPanelSkuId(e.target.value)}
+              className={inputClass}
+            >
+              {panelOptions.map((sku) => (
+                <option key={sku.id} value={sku.id}>
+                  {sku.brand} {sku.model}
+                  {sku.is_default ? " (predeterminado)" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block font-mono text-[10px] uppercase text-gray-500 mb-1">
+              Inversor
+            </label>
+            <select
+              value={inverterSkuId}
+              onChange={(e) => setInverterSkuId(e.target.value)}
+              className={inputClass}
+            >
+              {inverterOptions.map((sku) => (
+                <option key={sku.id} value={sku.id}>
+                  {sku.brand} {sku.model}
+                  {sku.is_default ? " (predeterminado)" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
 
       {error && <p className="text-danger text-sm mb-3">{error}</p>}
 

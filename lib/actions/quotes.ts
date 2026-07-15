@@ -12,6 +12,8 @@ import {
   type OrientationOption,
 } from "@/lib/sizing";
 import { computeBudget } from "@/lib/pricing";
+import { getDefaultSku } from "@/lib/data";
+import type { PriceTier, ProductSku } from "@/lib/supabase/types";
 
 export type ActionState = { error: string | null; message?: string | null };
 
@@ -172,15 +174,23 @@ export async function calculateSizingAction(
   redirect(`/quotes/${quoteId}/step-4`);
 }
 
-export async function generateBudgetAction(quoteId: string): Promise<ActionState> {
+export async function generateBudgetAction(
+  quoteId: string,
+  formData?: FormData
+): Promise<ActionState> {
   const supabase = await createClient();
 
-  const [{ data: quote, error: quoteError }, { data: catalog, error: catalogError }, { data: settings }] =
-    await Promise.all([
-      supabase.from("quotes").select("*").eq("id", quoteId).single(),
-      supabase.from("price_catalog").select("*").eq("is_active", true),
-      supabase.from("app_settings").select("*").eq("id", 1).single(),
-    ]);
+  const [
+    { data: quote, error: quoteError },
+    { data: catalog, error: catalogError },
+    { data: settings },
+    { data: tiers },
+  ] = await Promise.all([
+    supabase.from("quotes").select("*").eq("id", quoteId).single(),
+    supabase.from("price_catalog").select("*").eq("is_active", true),
+    supabase.from("app_settings").select("*").eq("id", 1).single(),
+    supabase.from("price_tiers").select("*").order("band_order"),
+  ]);
 
   if (quoteError || !quote) return { error: "No se encontró la cotización." };
   if (catalogError || !catalog || catalog.length === 0) {
@@ -190,8 +200,29 @@ export async function generateBudgetAction(quoteId: string): Promise<ActionState
     return { error: "Falta calcular el dimensionamiento (paso 3)." };
   }
 
+  const tiersByItemId: Record<string, PriceTier[]> = {};
+  for (const tier of tiers ?? []) {
+    (tiersByItemId[tier.price_catalog_id] ??= []).push(tier);
+  }
+
+  const panelSkuId = String(formData?.get("panel_sku_id") || "") || null;
+  const inverterSkuId = String(formData?.get("inverter_sku_id") || "") || null;
+
+  let panelSku: ProductSku | null;
+  let inverterSku: ProductSku | null;
+  if (panelSkuId) {
+    ({ data: panelSku } = await supabase.from("product_skus").select("*").eq("id", panelSkuId).single());
+  } else {
+    panelSku = await getDefaultSku("panel");
+  }
+  if (inverterSkuId) {
+    ({ data: inverterSku } = await supabase.from("product_skus").select("*").eq("id", inverterSkuId).single());
+  } else {
+    inverterSku = await getDefaultSku("inverter");
+  }
+
   const marginPct = settings?.default_margin_pct ?? 25;
-  const budget = computeBudget(quote.required_kwp, catalog, marginPct);
+  const budget = computeBudget(quote.required_kwp, catalog, marginPct, tiersByItemId, panelSku, inverterSku);
   const paybackYears = computePaybackYears(
     budget.total,
     quote.estimated_monthly_savings_cop ?? 0
@@ -204,6 +235,8 @@ export async function generateBudgetAction(quoteId: string): Promise<ActionState
       margin_pct: budget.marginPct,
       total_budget_cop: budget.total,
       payback_years: paybackYears,
+      panel_sku_id: panelSku?.id ?? null,
+      inverter_sku_id: inverterSku?.id ?? null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", quoteId);

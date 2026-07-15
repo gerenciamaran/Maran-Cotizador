@@ -52,6 +52,74 @@ export async function deleteCatalogItemAction(id: string) {
   revalidatePath("/catalog");
 }
 
+export async function addPriceTierAction(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  await requireAdminProfile();
+  const priceCatalogId = String(formData.get("price_catalog_id") || "");
+  const bandOrder = Number(formData.get("band_order"));
+  const minKwp = Number(formData.get("min_kwp"));
+  const maxKwpRaw = String(formData.get("max_kwp") || "").trim();
+  const multiplierPct = Number(formData.get("multiplier_pct"));
+
+  if (!priceCatalogId) return { error: "Falta el ítem del catálogo." };
+  if (isNaN(bandOrder) || bandOrder < 0) return { error: "Ingresa un orden de tramo válido." };
+  if (isNaN(minKwp) || minKwp < 0) return { error: "Ingresa un mínimo de kWp válido." };
+  if (isNaN(multiplierPct)) return { error: "Ingresa un porcentaje válido." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("price_tiers").insert({
+    price_catalog_id: priceCatalogId,
+    band_order: bandOrder,
+    min_kwp: minKwp,
+    max_kwp: maxKwpRaw ? Number(maxKwpRaw) : null,
+    multiplier_pct: multiplierPct,
+  });
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/catalog");
+  return { error: null };
+}
+
+export async function updatePriceTierAction(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  await requireAdminProfile();
+  const id = String(formData.get("id") || "");
+  const minKwp = Number(formData.get("min_kwp"));
+  const maxKwpRaw = String(formData.get("max_kwp") || "").trim();
+  const multiplierPct = Number(formData.get("multiplier_pct"));
+
+  if (!id) return { error: "Falta el tramo a editar." };
+  if (isNaN(minKwp) || minKwp < 0) return { error: "Ingresa un mínimo de kWp válido." };
+  if (isNaN(multiplierPct)) return { error: "Ingresa un porcentaje válido." };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("price_tiers")
+    .update({
+      min_kwp: minKwp,
+      max_kwp: maxKwpRaw ? Number(maxKwpRaw) : null,
+      multiplier_pct: multiplierPct,
+    })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/catalog");
+  return { error: null };
+}
+
+export async function deletePriceTierAction(id: string) {
+  await requireAdminProfile();
+  const supabase = await createClient();
+  await supabase.from("price_tiers").delete().eq("id", id);
+  revalidatePath("/catalog");
+}
+
 export async function updateMarginAction(
   _prevState: ActionState,
   formData: FormData
