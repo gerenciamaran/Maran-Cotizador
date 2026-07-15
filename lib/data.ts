@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { AppSettings, PriceCatalogItem, Profile, Quote } from "@/lib/supabase/types";
 
 export async function requireProfile(): Promise<Profile> {
@@ -48,6 +49,27 @@ export async function getActiveCatalog(): Promise<PriceCatalogItem[]> {
     .eq("is_active", true)
     .order("category");
   return data ?? [];
+}
+
+export interface ProfileWithEmail extends Profile {
+  email: string | null;
+}
+
+export async function getAllProfilesWithEmail(): Promise<ProfileWithEmail[]> {
+  const supabase = await createClient();
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("*")
+    .order("created_at", { ascending: true });
+  if (!profiles) return [];
+
+  // profiles no guarda el correo (vive en auth.users); se resuelve aparte
+  // con el cliente de service role solo para mostrarlo en esta pantalla.
+  const admin = createAdminClient();
+  const { data: usersData } = await admin.auth.admin.listUsers();
+  const emailById = new Map(usersData?.users.map((u) => [u.id, u.email ?? null]) ?? []);
+
+  return profiles.map((p) => ({ ...p, email: emailById.get(p.id) ?? null }));
 }
 
 export async function getAppSettings(): Promise<AppSettings> {

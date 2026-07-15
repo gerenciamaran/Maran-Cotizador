@@ -36,9 +36,14 @@ export default async function QuotesPage() {
         </div>
         <div className="flex items-center gap-4">
           {profile.role === "admin" && (
-            <Link href="/catalog" className="text-blue-600 text-sm hover:underline">
-              Catálogo de precios
-            </Link>
+            <>
+              <Link href="/catalog" className="text-blue-600 text-sm hover:underline">
+                Catálogo de precios
+              </Link>
+              <Link href="/users" className="text-blue-600 text-sm hover:underline">
+                Usuarios
+              </Link>
+            </>
           )}
           <form action={signOutAction}>
             <button

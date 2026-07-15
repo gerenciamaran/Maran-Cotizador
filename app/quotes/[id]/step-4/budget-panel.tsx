@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { generateBudgetAction } from "@/lib/actions/quotes";
+import { finalizeQuoteAction, generateBudgetAction } from "@/lib/actions/quotes";
 import { Button } from "@/components/ui";
 import type { Quote } from "@/lib/supabase/types";
 
@@ -24,6 +24,7 @@ function formatCop(n: number) {
 
 export function BudgetPanel({ quote }: { quote: Quote }) {
   const [pending, startTransition] = useTransition();
+  const [finalizing, startFinalizing] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -36,6 +37,12 @@ export function BudgetPanel({ quote }: { quote: Quote }) {
         return;
       }
       router.refresh();
+    });
+  }
+
+  function handleFinalize() {
+    startFinalizing(async () => {
+      await finalizeQuoteAction(quote.id);
     });
   }
 
@@ -101,6 +108,11 @@ export function BudgetPanel({ quote }: { quote: Quote }) {
         {quote.total_budget_cop && (
           <Button variant="outline" onClick={() => window.open(`/api/quotes/${quote.id}/pdf`, "_blank")}>
             Descargar PDF
+          </Button>
+        )}
+        {quote.total_budget_cop && (
+          <Button variant="success" onClick={handleFinalize} disabled={finalizing}>
+            {finalizing ? "Finalizando…" : "Finalizar →"}
           </Button>
         )}
       </div>

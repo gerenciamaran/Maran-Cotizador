@@ -213,3 +213,13 @@ export async function generateBudgetAction(quoteId: string): Promise<ActionState
   revalidatePath(`/quotes/${quoteId}/step-4`);
   return { error: null };
 }
+
+export async function finalizeQuoteAction(quoteId: string) {
+  const supabase = await createClient();
+  await supabase
+    .from("quotes")
+    .update({ status: "sent", updated_at: new Date().toISOString() })
+    .eq("id", quoteId);
+
+  redirect("/quotes");
+}
