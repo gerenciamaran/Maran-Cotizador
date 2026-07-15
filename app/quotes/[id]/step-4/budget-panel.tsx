@@ -4,15 +4,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { finalizeQuoteAction, generateBudgetAction } from "@/lib/actions/quotes";
 import { Button, inputClass } from "@/components/ui";
+import { EditableBudgetTable } from "@/app/quotes/[id]/step-4/editable-budget-table";
 import type { ProductSku, Quote } from "@/lib/supabase/types";
-
-const CATEGORY_LABELS: Record<string, string> = {
-  panel: "Paneles",
-  inverter: "Inversor",
-  structure: "Estructura",
-  labor: "Mano de obra",
-  other: "Otros",
-};
 
 function formatCop(n: number) {
   return new Intl.NumberFormat("es-CO", {
@@ -87,27 +80,12 @@ export function BudgetPanel({
       </div>
 
       {quote.budget_breakdown && quote.budget_breakdown.length > 0 ? (
-        <div className="mb-4">
-          <div className="divide-y divide-gray-100">
-            {quote.budget_breakdown.map((line, i) => (
-              <div key={i} className="flex justify-between items-center py-2 text-sm">
-                <div>
-                  <div className="font-semibold text-gray-900">{line.name}</div>
-                  <div className="font-mono text-[11px] text-gray-500">
-                    {CATEGORY_LABELS[line.category] ?? line.category}
-                  </div>
-                </div>
-                <div className="text-gray-900">{formatCop(line.subtotal_cop)}</div>
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-between items-center pt-3 mt-2 border-t border-gray-200">
-            <div className="font-heading text-base text-gray-900">Total</div>
-            <div className="font-heading text-xl text-blue-600">
-              {quote.total_budget_cop ? formatCop(quote.total_budget_cop) : "—"}
-            </div>
-          </div>
-        </div>
+        <EditableBudgetTable
+          key={quote.updated_at}
+          quoteId={quote.id}
+          initialBreakdown={quote.budget_breakdown}
+          marginPct={quote.margin_pct ?? 0}
+        />
       ) : null}
 
       {(panelOptions.length > 0 || inverterOptions.length > 0) && (

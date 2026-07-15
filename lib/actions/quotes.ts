@@ -13,7 +13,7 @@ import {
 } from "@/lib/sizing";
 import { computeBudget } from "@/lib/pricing";
 import { getDefaultSku } from "@/lib/data";
-import type { PriceTier, ProductSku } from "@/lib/supabase/types";
+import type { BudgetLine, PriceTier, ProductSku } from "@/lib/supabase/types";
 
 export type ActionState = { error: string | null; message?: string | null };
 
@@ -247,6 +247,47 @@ export async function generateBudgetAction(
 
   revalidatePath(`/quotes/${quoteId}/step-4`);
   return { error: null };
+}
+
+// Guarda un desglose de presupuesto editado a mano (el vendedor quitó,
+// modificó o agregó ítems en la hoja final) y recalcula el total aplicando
+// el mismo % de margen que ya tenía la cotización.
+export async function updateBudgetBreakdownAction(
+  quoteId: string,
+  breakdown: BudgetLine[]
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const { data: quote, error: quoteError } = await supabase
+    .from("quotes")
+    .select("margin_pct, estimated_monthly_savings_cop")
+    .eq("id", quoteId)
+    .single();
+
+  if (quoteError || !quote) return { error: "No se encontró la cotización." };
+
+  const marginPct = quote.margin_pct ?? 0;
+  const subtotalBeforeMargin = round2(breakdown.reduce((sum, l) => sum + l.subtotal_cop, 0));
+  const total = round2(subtotalBeforeMargin * (1 + marginPct / 100));
+  const paybackYears = computePaybackYears(total, quote.estimated_monthly_savings_cop ?? 0);
+
+  const { error } = await supabase
+    .from("quotes")
+    .update({
+      budget_breakdown: breakdown,
+      total_budget_cop: total,
+      payback_years: paybackYears,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", quoteId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/quotes/${quoteId}/step-4`);
+  return { error: null };
+}
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
 }
 
 export async function deleteQuoteAction(quoteId: string) {
