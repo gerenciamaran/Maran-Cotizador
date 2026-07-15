@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getAllQuotes, requireProfile } from "@/lib/data";
 import { signOutAction } from "@/lib/actions/auth";
 import { Card, CardTitle, Empty } from "@/components/ui";
+import { DeleteQuoteButton } from "@/app/quotes/delete-quote-button";
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "Borrador",
@@ -112,6 +113,7 @@ export default async function QuotesPage() {
                   >
                     {STATUS_LABELS[q.status]}
                   </span>
+                  <DeleteQuoteButton id={q.id} />
                 </div>
               </div>
             ))}

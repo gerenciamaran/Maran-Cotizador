@@ -247,6 +247,12 @@ export async function generateBudgetAction(
   return { error: null };
 }
 
+export async function deleteQuoteAction(quoteId: string) {
+  const supabase = await createClient();
+  await supabase.from("quotes").delete().eq("id", quoteId);
+  revalidatePath("/quotes");
+}
+
 export async function finalizeQuoteAction(quoteId: string) {
   const supabase = await createClient();
   await supabase

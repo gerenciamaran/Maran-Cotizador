@@ -27,16 +27,14 @@ export function AddCatalogItemForm() {
 
   return (
     <form action={formAction} className="flex gap-2.5 flex-wrap items-start mt-3.5">
-      <select name="category" className={`${inputClass} flex-1 min-w-[130px]`} defaultValue="panel">
-        <option value="panel">Panel</option>
-        <option value="inverter">Inversor</option>
+      <select name="category" className={`${inputClass} flex-1 min-w-[130px]`} defaultValue="structure">
         <option value="structure">Estructura</option>
         <option value="labor">Mano de obra</option>
         <option value="other">Otro</option>
       </select>
       <input
         name="name"
-        placeholder="Nombre (ej: Panel monocristalino 550W)"
+        placeholder="Nombre (ej: RETIE)"
         className={`${inputClass} flex-1 min-w-[220px]`}
         required
       />

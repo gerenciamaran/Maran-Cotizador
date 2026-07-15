@@ -41,7 +41,12 @@ export function computeBudget(
   panelSku?: ProductSku | null,
   inverterSku?: ProductSku | null
 ): BudgetResult {
-  const activeItems = catalog.filter((item) => item.is_active);
+  // panel/inverter se manejan exclusivamente vía SKU (panelSku/inverterSku);
+  // cualquier fila con esa categoría en price_catalog se ignora aquí para
+  // evitar sumar el costo del equipo dos veces.
+  const activeItems = catalog.filter(
+    (item) => item.is_active && item.category !== "panel" && item.category !== "inverter"
+  );
 
   // Los ítems "percent" (ej. contingencia) se aplican sobre el subtotal de
   // los demás ítems, así que se calculan en una segunda pasada.

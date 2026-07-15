@@ -19,6 +19,9 @@ export async function addCatalogItemAction(
 
   if (!name) return { error: "Escribe un nombre para el ítem." };
   if (!unitCost || unitCost <= 0) return { error: "Ingresa un costo válido." };
+  if (category === "panel" || category === "inverter") {
+    return { error: "Panel e inversor se agregan como modelos en la sección de arriba, no aquí." };
+  }
 
   const supabase = await createClient();
   const { error } = await supabase.from("price_catalog").insert({
