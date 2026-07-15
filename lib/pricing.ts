@@ -3,6 +3,11 @@
 
 import type { BudgetLine, PriceCatalogItem, PriceTier, ProductSku } from "@/lib/supabase/types";
 
+// Cuando no se elige un modelo de inversor específico, el modo automático
+// calcula su costo como este % del resto del proyecto (sin utilidad) —
+// confirmado con el usuario como una aproximación razonable del costo real.
+const INVERTER_AUTO_PCT = 25;
+
 export interface BudgetResult {
   breakdown: BudgetLine[];
   subtotalBeforeMargin: number;
@@ -73,15 +78,43 @@ export function computeBudget(
     };
   });
 
-  for (const sku of [panelSku, inverterSku]) {
-    if (!sku) continue;
-    const subtotal = sku.unit_type === "per_wp" ? sku.unit_cost_cop * requiredKwp * 1000 : sku.unit_cost_cop * requiredKwp;
+  if (panelSku) {
+    const subtotal =
+      panelSku.unit_type === "per_wp"
+        ? panelSku.unit_cost_cop * requiredKwp * 1000
+        : panelSku.unit_cost_cop * requiredKwp;
     baseLines.push({
-      category: sku.category,
-      name: `${sku.brand} ${sku.model}`,
-      unit_type: sku.unit_type,
-      unit_cost_cop: sku.unit_cost_cop,
+      category: panelSku.category,
+      name: `${panelSku.brand} ${panelSku.model}`,
+      unit_type: panelSku.unit_type,
+      unit_cost_cop: panelSku.unit_cost_cop,
       subtotal_cop: round2(subtotal),
+    });
+  }
+
+  // Sin un modelo de inversor elegido explícitamente, el modo automático
+  // calcula su costo como el 25% del resto del proyecto (sin utilidad),
+  // en vez de usar la tarifa de un SKU predeterminado.
+  if (inverterSku) {
+    const subtotal =
+      inverterSku.unit_type === "per_wp"
+        ? inverterSku.unit_cost_cop * requiredKwp * 1000
+        : inverterSku.unit_cost_cop * requiredKwp;
+    baseLines.push({
+      category: inverterSku.category,
+      name: `${inverterSku.brand} ${inverterSku.model}`,
+      unit_type: inverterSku.unit_type,
+      unit_cost_cop: inverterSku.unit_cost_cop,
+      subtotal_cop: round2(subtotal),
+    });
+  } else {
+    const restOfProjectSubtotal = baseLines.reduce((sum, l) => sum + l.subtotal_cop, 0);
+    baseLines.push({
+      category: "inverter",
+      name: "Inversor (automático — 25% del proyecto)",
+      unit_type: "percent",
+      unit_cost_cop: INVERTER_AUTO_PCT,
+      subtotal_cop: round2(restOfProjectSubtotal * (INVERTER_AUTO_PCT / 100)),
     });
   }
 

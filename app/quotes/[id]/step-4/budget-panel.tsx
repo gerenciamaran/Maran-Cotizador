@@ -37,9 +37,7 @@ export function BudgetPanel({
   const [panelSkuId, setPanelSkuId] = useState(
     quote.panel_sku_id ?? panelOptions.find((s) => s.is_default)?.id ?? panelOptions[0]?.id ?? ""
   );
-  const [inverterSkuId, setInverterSkuId] = useState(
-    quote.inverter_sku_id ?? inverterOptions.find((s) => s.is_default)?.id ?? inverterOptions[0]?.id ?? ""
-  );
+  const [inverterSkuId, setInverterSkuId] = useState(quote.inverter_sku_id ?? "");
   const router = useRouter();
 
   function handleGenerate() {
@@ -140,10 +138,10 @@ export function BudgetPanel({
               onChange={(e) => setInverterSkuId(e.target.value)}
               className={inputClass}
             >
+              <option value="">Automático (25% del proyecto)</option>
               {inverterOptions.map((sku) => (
                 <option key={sku.id} value={sku.id}>
                   {sku.brand} {sku.model}
-                  {sku.is_default ? " (predeterminado)" : ""}
                 </option>
               ))}
             </select>

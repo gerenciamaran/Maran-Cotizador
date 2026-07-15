@@ -218,7 +218,9 @@ export async function generateBudgetAction(
   if (inverterSkuId) {
     ({ data: inverterSku } = await supabase.from("product_skus").select("*").eq("id", inverterSkuId).single());
   } else {
-    inverterSku = await getDefaultSku("inverter");
+    // Sin modelo elegido, el inversor se calcula automáticamente (25% del
+    // resto del proyecto) en computeBudget — no se usa un SKU predeterminado.
+    inverterSku = null;
   }
 
   const marginPct = settings?.default_margin_pct ?? 25;
