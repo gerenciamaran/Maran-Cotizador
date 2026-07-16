@@ -5,6 +5,11 @@ import { WizardProgress } from "@/components/wizard-progress";
 import { Card, CardTitle } from "@/components/ui";
 import { Step1Client } from "@/app/quotes/[id]/step-1/step1-client";
 
+// OCR.space puede tardar bastante con OCREngine 2 en imágenes grandes; el
+// límite por defecto de las funciones serverless (10s) se queda corto y
+// mata la función a medias, lo que el cliente ve como un error genérico.
+export const maxDuration = 60;
+
 export default async function Step1Page({
   params,
 }: {

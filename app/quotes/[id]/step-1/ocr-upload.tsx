@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { runOcrAction, type OcrState } from "@/lib/actions/ocr";
 import { Button } from "@/components/ui";
 
@@ -13,6 +13,9 @@ export function OcrUpload({
   quoteId: string;
   onExtracted: (consumptionKwh: number | null, tariffCopPerKwh: number | null) => void;
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+
   const [state, formAction, pending] = useActionState(async (prev: OcrState, formData: FormData) => {
     const result = await runOcrAction(prev, formData);
     if (!result.error || result.consumptionKwh || result.tariffCopPerKwh) {
@@ -29,12 +32,24 @@ export function OcrUpload({
       </label>
       <div className="flex gap-2.5 flex-wrap items-center">
         <input
+          ref={fileInputRef}
           type="file"
           name="bill_image"
           accept="image/*,application/pdf"
-          className="text-sm text-gray-600 flex-1 min-w-[200px]"
+          className="hidden"
+          onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
         />
-        <Button type="submit" variant="outline" disabled={pending}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          Seleccionar archivo
+        </Button>
+        <span className="text-sm text-gray-500 truncate max-w-[220px]">
+          {fileName ?? "Ningún archivo seleccionado"}
+        </span>
+        <Button type="submit" disabled={pending || !fileName}>
           {pending ? "Leyendo factura…" : "Extraer datos"}
         </Button>
       </div>

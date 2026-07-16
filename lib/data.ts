@@ -13,9 +13,19 @@ import type {
 
 export async function requireProfile(): Promise<Profile> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+
+  // getUser() puede lanzar (no solo devolver error) cuando la sesión quedó
+  // en un estado inválido — ej. dos cuentas abiertas en el mismo navegador
+  // pisándose las cookies entre sí. Se trata igual que "no hay sesión" en
+  // vez de dejar que la excepción tumbe toda la página.
+  let user;
+  try {
+    ({
+      data: { user },
+    } = await supabase.auth.getUser());
+  } catch {
+    redirect("/login");
+  }
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
