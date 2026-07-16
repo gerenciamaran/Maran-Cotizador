@@ -74,7 +74,7 @@ export function computeBudget(
       name: item.name,
       unit_type: item.unit_type,
       unit_cost_cop: item.unit_cost_cop,
-      subtotal_cop: round2(subtotal),
+      subtotal_cop: roundToPeso(subtotal),
     };
   });
 
@@ -88,7 +88,7 @@ export function computeBudget(
       name: `${panelSku.brand} ${panelSku.model}`,
       unit_type: panelSku.unit_type,
       unit_cost_cop: panelSku.unit_cost_cop,
-      subtotal_cop: round2(subtotal),
+      subtotal_cop: roundToPeso(subtotal),
     });
   }
 
@@ -105,7 +105,7 @@ export function computeBudget(
       name: `${inverterSku.brand} ${inverterSku.model}`,
       unit_type: inverterSku.unit_type,
       unit_cost_cop: inverterSku.unit_cost_cop,
-      subtotal_cop: round2(subtotal),
+      subtotal_cop: roundToPeso(subtotal),
     });
   } else {
     const restOfProjectSubtotal = baseLines.reduce((sum, l) => sum + l.subtotal_cop, 0);
@@ -114,7 +114,7 @@ export function computeBudget(
       name: "Inversor (automático — 25% del proyecto)",
       unit_type: "percent",
       unit_cost_cop: INVERTER_AUTO_PCT,
-      subtotal_cop: round2(restOfProjectSubtotal * (INVERTER_AUTO_PCT / 100)),
+      subtotal_cop: roundToPeso(restOfProjectSubtotal * (INVERTER_AUTO_PCT / 100)),
     });
   }
 
@@ -127,19 +127,21 @@ export function computeBudget(
       name: item.name,
       unit_type: item.unit_type,
       unit_cost_cop: item.unit_cost_cop,
-      subtotal_cop: round2(subtotal),
+      subtotal_cop: roundToPeso(subtotal),
     };
   });
 
   const breakdown = [...baseLines, ...percentLines];
-  const subtotalBeforeMargin = round2(
+  const subtotalBeforeMargin = roundToPeso(
     breakdown.reduce((sum, l) => sum + l.subtotal_cop, 0)
   );
-  const total = round2(subtotalBeforeMargin * (1 + marginPct / 100));
+  const total = roundToPeso(subtotalBeforeMargin * (1 + marginPct / 100));
 
   return { breakdown, subtotalBeforeMargin, marginPct, total };
 }
 
-function round2(n: number): number {
-  return Math.round(n * 100) / 100;
+// El peso colombiano no circula en centavos, así que todo el presupuesto se
+// redondea a pesos enteros (no hay razón para mostrar/editar decimales).
+function roundToPeso(n: number): number {
+  return Math.round(n);
 }

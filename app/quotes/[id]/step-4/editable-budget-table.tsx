@@ -22,6 +22,18 @@ function formatCop(n: number) {
   }).format(n);
 }
 
+// Los montos se editan como pesos enteros (el peso colombiano no circula en
+// centavos): el input muestra "2.350.580" con separador de miles y solo
+// permite dígitos, sin decimales.
+function formatPesoInput(n: number) {
+  return new Intl.NumberFormat("es-CO").format(Math.round(n));
+}
+
+function parsePesoInput(value: string): number {
+  const digits = value.replace(/\D/g, "");
+  return digits ? parseInt(digits, 10) : 0;
+}
+
 export function EditableBudgetTable({
   quoteId,
   initialBreakdown,
@@ -31,7 +43,9 @@ export function EditableBudgetTable({
   initialBreakdown: BudgetLine[];
   marginPct: number;
 }) {
-  const [lines, setLines] = useState<BudgetLine[]>(initialBreakdown);
+  const [lines, setLines] = useState<BudgetLine[]>(
+    initialBreakdown.map((l) => ({ ...l, subtotal_cop: Math.round(l.subtotal_cop) }))
+  );
   const [newName, setNewName] = useState("");
   const [newAmount, setNewAmount] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -45,16 +59,13 @@ export function EditableBudgetTable({
     setLines((prev) => prev.filter((_, i) => i !== index));
   }
 
-  function updateAmount(index: number, value: string) {
-    const amount = Number(value);
-    setLines((prev) =>
-      prev.map((l, i) => (i === index ? { ...l, subtotal_cop: isNaN(amount) ? 0 : amount } : l))
-    );
+  function updateAmount(index: number, amount: number) {
+    setLines((prev) => prev.map((l, i) => (i === index ? { ...l, subtotal_cop: amount } : l)));
   }
 
   function addLine() {
-    const amount = Number(newAmount);
-    if (!newName.trim() || !newAmount || isNaN(amount)) return;
+    const amount = parsePesoInput(newAmount);
+    if (!newName.trim() || !amount) return;
     setLines((prev) => [
       ...prev,
       {
@@ -93,13 +104,18 @@ export function EditableBudgetTable({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <input
-                type="number"
-                step="0.01"
-                value={line.subtotal_cop}
-                onChange={(e) => updateAmount(i, e.target.value)}
-                className={`${inputClass} flex-1`}
-              />
+              <div className="relative flex-1">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+                  $
+                </span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={formatPesoInput(line.subtotal_cop)}
+                  onChange={(e) => updateAmount(i, parsePesoInput(e.target.value))}
+                  className={`${inputClass} pl-6 text-right`}
+                />
+              </div>
               <button
                 type="button"
                 onClick={() => removeLine(i)}
@@ -120,10 +136,10 @@ export function EditableBudgetTable({
           className={`${inputClass} flex-1 min-w-[160px]`}
         />
         <input
-          type="number"
-          step="0.01"
+          type="text"
+          inputMode="numeric"
           placeholder="Valor (COP)"
-          value={newAmount}
+          value={newAmount ? formatPesoInput(parsePesoInput(newAmount)) : ""}
           onChange={(e) => setNewAmount(e.target.value)}
           className={`${inputClass} w-36`}
         />

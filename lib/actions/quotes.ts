@@ -266,8 +266,8 @@ export async function updateBudgetBreakdownAction(
   if (quoteError || !quote) return { error: "No se encontró la cotización." };
 
   const marginPct = quote.margin_pct ?? 0;
-  const subtotalBeforeMargin = round2(breakdown.reduce((sum, l) => sum + l.subtotal_cop, 0));
-  const total = round2(subtotalBeforeMargin * (1 + marginPct / 100));
+  const subtotalBeforeMargin = roundToPeso(breakdown.reduce((sum, l) => sum + l.subtotal_cop, 0));
+  const total = roundToPeso(subtotalBeforeMargin * (1 + marginPct / 100));
   const paybackYears = computePaybackYears(total, quote.estimated_monthly_savings_cop ?? 0);
 
   const { error } = await supabase
@@ -286,8 +286,8 @@ export async function updateBudgetBreakdownAction(
   return { error: null };
 }
 
-function round2(n: number): number {
-  return Math.round(n * 100) / 100;
+function roundToPeso(n: number): number {
+  return Math.round(n);
 }
 
 export async function deleteQuoteAction(quoteId: string) {

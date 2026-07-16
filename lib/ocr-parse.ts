@@ -43,6 +43,11 @@ export function parseOcrText(text: string): OcrExtraction {
     /consumo\s*facturado\D{0,15}(\d[\d.,]*)\s*kwh/i,
     /energ[íi]a\s*activa\D{0,15}(\d[\d.,]*)\s*kwh/i,
     /consumo\D{0,15}(\d[\d.,]*)\s*kwh/i,
+    // Muchas facturas industriales/comerciales (tablas de consumo histórico)
+    // ponen la unidad ANTES del número, y el OCR suele separarlos con saltos
+    // de línea: "Energía activa kWh-mes\n271.516".
+    /energ[íi]a\s*activa\s*kwh[-\s]*mes?[\s\S]{0,15}?(\d[\d.,]{2,})/i,
+    /kwh[-\s]*mes[\s\S]{0,15}?(\d[\d.,]{2,})/i,
     new RegExp(NUMBER_PATTERN + "\\s*kwh", "i"),
   ]);
 

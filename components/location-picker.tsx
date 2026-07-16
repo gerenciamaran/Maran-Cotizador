@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { MapContainer, Marker, TileLayer, useMapEvents } from "react-leaflet";
+import { useEffect, useState } from "react";
+import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -23,6 +23,19 @@ function ClickHandler({ onPick }: { onPick: (lat: number, lng: number) => void }
       onPick(e.latlng.lat, e.latlng.lng);
     },
   });
+  return null;
+}
+
+// react-leaflet solo usa el prop `center` del MapContainer en el montaje
+// inicial — cambiarlo después (ej. al buscar una dirección) no mueve el mapa
+// por sí solo. Hay que llamar setView() a mano cuando la posición cambia.
+function RecenterMap({ position }: { position: [number, number] | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (position) {
+      map.setView(position, Math.max(map.getZoom(), 16));
+    }
+  }, [position, map]);
   return null;
 }
 
@@ -106,6 +119,7 @@ export function LocationPicker({
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <ClickHandler onPick={handlePick} />
+          <RecenterMap position={position} />
           {position && <Marker position={position} icon={markerIcon} />}
         </MapContainer>
       </div>
